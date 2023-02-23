@@ -16,21 +16,32 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Controller
 public class  LoginController {
 
-    @GetMapping("/login")
-    public String showLogin(){
+    @GetMapping("/login") //to check if the user is already logged in and to prevent showing the login screen again.
+    public String showLogin(HttpSession session, @CookieValue(value = "session", defaultValue = "null") String sessionCookie, HttpServletResponse response){
+
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Expires", "0");
+
+
+        if (session.getAttribute("username") != null && !sessionCookie.equals("null")) {
+            System.out.println("ALREADY LOGGED IN");
+            return "redirect:/home";
+        }
+
         return "login-page";
     }
 
     //check credentials
-    @PostMapping("/login")
-    public String login(@ModelAttribute(name="loginForm") Login login, Model model, HttpSession session, HttpServletResponse response){
+    @PostMapping("/login") //checking credentials
+    public String login( Login login, Model model, HttpSession session, HttpServletResponse response){
         String uname = login.getUsername();
         String pass = login.getPassword();
 
         if(uname.equals("sachin") && pass.equals("Mpik|@27c(")){
             session.setAttribute("username", login.getUsername());
             Cookie cookie = new Cookie("session", login.getUsername());
-            cookie.setMaxAge(30); //30 seconds
+            cookie.setMaxAge(60);
 
             response.addCookie(cookie);
 
@@ -47,17 +58,17 @@ public class  LoginController {
 
 
     @GetMapping("/home")
-    public String home(Model model, HttpSession session, HttpServletResponse response, @CookieValue(value = "session", defaultValue = "null") String sessionCookie) {
+    public String home(Model model, HttpSession session, HttpServletResponse response, @CookieValue(value = "session", defaultValue = "null") String cookie) {
         // Check if user is logged in
-        System.out.println("Cookie is " + sessionCookie);
+        System.out.println("Cookie is " + cookie);
         System.out.println("Session is " + session.getAttribute("username"));
-        if (session.getAttribute("username") == null || sessionCookie.equals("null")) {
+        if (session.getAttribute("username") == null || cookie.equals("null")) {
             return "redirect:/login";
         }
 
         // If user is logged in, display the home page
         String username = (String) session.getAttribute("username");
-        model.addAttribute("username", username);
+        model.addAttribute("uname", username);
 
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         response.setHeader("Pragma", "no-cache");
@@ -81,8 +92,9 @@ public class  LoginController {
     }
 
     @GetMapping("/random")
-    public String showRandom(HttpSession session, HttpServletResponse response){
-        if (session.getAttribute("username") == null) {
+    public String showRandom(HttpSession session, HttpServletResponse response, @CookieValue(value = "session", defaultValue = "null") String sessionCookie){
+        if (session.getAttribute("username") == null || sessionCookie.equals("null")) {
+            System.out.println("RANDOM logged out");
             return "redirect:/login";
         }
 

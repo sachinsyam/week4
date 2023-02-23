@@ -16,11 +16,11 @@
 
 
 </head>
-<body>
+<body class="">
 
 
-<div class="login-form">
-    <form th:action="@{/login}" th:object="${loginForm}" method="post">
+<div class="login-form ">
+    <form th:action="@{/login}"  method="post" class=" login-background">
         <h2 class="text-center">Sign in</h2>
         <p th:if="${error}" class="text-danger">Username or Password Incorrect</p>
         <div class="row">
